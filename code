@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="password"], input[type="email"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .job-list {
+            margin-top: 20px;
+        }
+        .job-list div {
+            background-color: #f1f1f1;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .message {
+            color: red;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Job Portal</h1>
+
+        <!-- Login Form -->
+        <div id="loginForm">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password">
+            </div>
+            <button onclick="login()">Login</button>
+            <p>Don't have an account? <a href="javascript:void(0);" onclick="toggleForm()">Sign up</a></p>
+            <div id="errorMessage" class="message"></div>
+        </div>
+
+        <!-- Registration Form -->
+        <div id="registerForm" style="display: none;">
+            <h2>Register</h2>
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="regName" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="regEmail" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="regPassword" placeholder="Enter your password">
+            </div>
+            <div class="form-group">
+                <label for="role">Select Role</label>
+                <select id="role">
+                    <option value="seeker">Job Seeker</option>
+                    <option value="giver">Job Giver</option>
+                </select>
+            </div>
+            <button onclick="register()">Register</button>
+            <p>Already have an account? <a href="javascript:void(0);" onclick="toggleForm()">Login</a></p>
+            <div id="registerErrorMessage" class="message"></div>
+        </div>
+
+        <!-- Job Posting Form (for Givers) -->
+        <div id="jobForm" style="display: none;">
+            <h2>Post a Job</h2>
+            <div class="form-group">
+                <label for="jobTitle">Job Title</label>
+                <input type="text" id="jobTitle" placeholder="Enter job title">
+            </div>
+            <div class="form-group">
+                <label for="jobDescription">Job Description</label>
+                <textarea id="jobDescription" placeholder="Enter job description"></textarea>
+            </div>
+            <button onclick="postJob()">Post Job</button>
+            <div id="jobSuccessMessage" class="message"></div>
+        </div>
+
+        <!-- Job Listings (for Seekers) -->
+        <div id="jobListings" style="display: none;">
+            <h2>Available Jobs</h2>
+            <div class="job-list" id="jobListContainer">
+                <!-- Jobs will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let users = []; // Stores registered users
+        let jobs = []; // Stores posted jobs
+        let loggedInUser = null; // Stores the logged-in user
+
+        // Toggle between login and registration forms
+        function toggleForm() {
+            let loginForm = document.getElementById('loginForm');
+            let registerForm = document.getElementById('registerForm');
+            loginForm.style.display = loginForm.style.display === 'none' ? 'block' : 'none';
+            registerForm.style.display = registerForm.style.display === 'none' ? 'block' : 'none';
+            document.getElementById('errorMessage').innerHTML = '';
+            document.getElementById('registerErrorMessage').innerHTML = '';
+        }
+
+        // Register a new user
+        function register() {
+            let name = document.getElementById('regName').value;
+            let email = document.getElementById('regEmail').value;
+            let password = document.getElementById('regPassword').value;
+            let role = document.getElementById('role').value;
+
+            if (!name || !email || !password || !role) {
+                document.getElementById('registerErrorMessage').innerHTML = 'Please fill all fields';
+                return;
+            }
+
+            // Save the user
+            users.push({ name, email, password, role });
+            alert('Registration successful. You can now login!');
+            toggleForm();
+        }
+
+        // Login an existing user
+        function login() {
+            let email = document.getElementById('loginEmail').value;
+            let password = document.getElementById('loginPassword').value;
+            let user = users.find(user => user.email === email && user.password === password);
+
+            if (!user) {
+                document.getElementById('errorMessage').innerHTML = 'Invalid email or password';
+                return;
+            }
+
+            loggedInUser = user;
+            alert('Login successful!');
+
+            // Show appropriate view based on user role
+            if (user.role === 'giver') {
+                showJobForm();
+            } else {
+                showJobListings();
+            }
+        }
+
+        // Show job posting form for Job Giver
+        function showJobForm() {
+            document.getElementById('jobForm').style.display = 'block';
+            document.getElementById('jobListings').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+        }
+
+        // Show job listings for Job Seeker
+        function showJobListings() {
+            document.getElementById('jobListings').style.display = 'block';
+            document.getElementById('jobForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+
+            let jobListContainer = document.getElementById('jobListContainer');
+            jobListContainer.innerHTML = '';
+
+            jobs.forEach((job, index) => {
+                let jobDiv = document.createElement('div');
+                jobDiv.innerHTML = `
+                    <strong>${job.title}</strong><br>
+                    ${job.description}<br>
+                    <button onclick="applyForJob(${index})">Apply</button>
+                `;
+                jobListContainer.appendChild(jobDiv);
+            });
+        }
+
+        // Post a job
+        function postJob() {
+            let title = document.getElementById('jobTitle').value;
+            let description = document.getElementById('jobDescription').value;
+
+            if (!title || !description) {
+                document.getElementById('jobSuccessMessage').innerHTML = 'Please fill in all fields';
+                return;
+            }
+
+            jobs.push({ title, description });
+            document.getElementById('jobSuccessMessage').innerHTML = 'Job posted successfully!';
+        }
+
+        // Apply for a job
+        function applyForJob(index) {
+            if (!loggedInUser || loggedInUser.role !== 'seeker') {
+                alert('You must be a job seeker to apply for a job');
+                return;
+            }
+
+            alert('Application submitted for ' + jobs[index].title);
+        }
+    </script>
+
+</body>
+</html>
+
